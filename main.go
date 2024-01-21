@@ -25,7 +25,7 @@ func main() {
 
 	// Prepare table
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Container ID", "Container Name", "Image", "Status", "Open Ports"})
+	table.SetHeader([]string{"Container ID", "Container Name", "Image", "Status", "IP Address", "Open Ports"})
 
 	// Fill in table with container information
 	for _, container := range containers {
@@ -34,6 +34,9 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		// Get the container's IP address
+		ipAddress := getContainerIPAddress(containerDetails)
 
 		// Prepare open ports string
 		openPorts := ""
@@ -48,6 +51,7 @@ func main() {
 			container.Names[0],
 			container.Image,
 			container.Status,
+			ipAddress,
 			openPorts,
 		})
 	}
@@ -62,4 +66,15 @@ func trimCommaSpace(s string) string {
 		return s[:len(s)-2]
 	}
 	return s
+}
+
+// Helper function to get the container's IP address
+func getContainerIPAddress(containerDetails types.ContainerJSON) string {
+	// Assuming the container has a single network (common case)
+	if len(containerDetails.NetworkSettings.Networks) > 0 {
+		for _, network := range containerDetails.NetworkSettings.Networks {
+			return network.IPAddress
+		}
+	}
+	return "N/A"
 }
